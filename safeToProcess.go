@@ -3,6 +3,8 @@ package main
 import (
 	"regexp"
 	"time"
+
+	"github.com/spf13/viper"
 )
 
 func isSafeToProcess(filename string) bool {
@@ -18,7 +20,10 @@ func isSafeToProcess(filename string) bool {
 	}
 
 	// Reference time: midnight of the day 2 hours ago in UTC
-	ref := time.Now().UTC().Add(-2 * time.Hour)
+	ref, err := time.Parse("2006-01-02", viper.GetString("day-until"))
+	if err != nil {
+		return false
+	}
 	today := time.Date(ref.Year(), ref.Month(), ref.Day(), 0, 0, 0, 0, time.UTC)
 
 	return d.Before(today)
