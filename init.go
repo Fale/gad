@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
 
@@ -18,6 +19,7 @@ const (
 
 func initConfig() error {
 	// Default values
+	viper.SetDefault("batch-size", 500)
 	viper.SetDefault("day-until", time.Now().UTC().Add(-2*time.Hour).Format("2006-01-02"))
 	viper.SetDefault("profile", "default")
 
@@ -44,12 +46,13 @@ func initConfig() error {
 	}
 
 	// ---- Environment variables (override config) ----
-	// Env to set in shell: GAD_BUCKET, GAD_DAY_UNTIL, GAD_LOGS_FOLDER, GAD_PROFILE
+	// Env to set in shell: GAD_BATCH_SIZE, GAD_BUCKET, GAD_DAY_UNTIL, GAD_LOGS_FOLDER, GAD_PROFILE
 	viper.SetEnvPrefix(strings.ToUpper(appName))
 	viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
 	viper.AutomaticEnv()
 
 	// ---- CLI flags (highest precedence) ----
+	pflag.Int("batch-size", viper.GetInt("batch-size"), "Number of items to process per batch")
 	pflag.String("bucket", viper.GetString("bucket"), "AWS bucket where logs are stored")
 	pflag.String("day-until", viper.GetString("day-until"), "Process data up to this UTC day (excluded), format YYYY-MM-DD")
 	pflag.String("logs-folder", viper.GetString("logs-folder"), "Folder to store processed logs")
@@ -65,6 +68,7 @@ Config search order (lowest to highest before env/flags):
       3) %s
 
 Environment variables (override config):
+      GAD_BATCH_SIZE    → batch-size
       GAD_BUCKET        → bucket
       GAD_DAY_UNTIL     → day-until
       GAD_LOGS_FOLDER   → logs-folder
@@ -95,8 +99,16 @@ Flags (highest precedence):
 	if f := pflag.Lookup("day-until"); f != nil && f.Changed {
 		viper.Set("day-until", f.Value.String())
 	}
+	// Int flag for batch size
+	if f := pflag.Lookup("batch-size"); f != nil && f.Changed {
+		i, _ := strconv.Atoi(f.Value.String())
+		viper.Set("batch-size", i)
+	}
 
 	// ---- Validation ----
+	if viper.GetInt("batch-size") <= 0 {
+		return fmt.Errorf("invalid batch-size: must be > 0")
+	}
 	if viper.GetString("bucket") == "" {
 		return fmt.Errorf("missing required configuration: bucket")
 	}

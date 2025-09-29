@@ -30,7 +30,7 @@ func main() {
 	findUnsafe := false
 	for {
 		fmt.Printf("getting new files... ")
-		list, err := listFiles(client, 500)
+		list, err := listFiles(client, viper.GetInt("batch-size"))
 		if err != nil {
 			log.Fatalf("unable to identify the property to manage: %v\n", err)
 		}
