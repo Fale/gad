@@ -1,15 +1,13 @@
 package main
 
 import (
-	"regexp"
 	"time"
 
 	"github.com/spf13/viper"
 )
 
 func isSafeToProcess(filename string) bool {
-	namePattern := regexp.MustCompile(`([0-9]{4}-[0-9]{2}-[0-9]{2})T[0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]{3}-.+\.log`)
-	lfs := namePattern.FindStringSubmatch(filename)
+	lfs := logFilenamePattern.FindStringSubmatch(filename)
 	if len(lfs) < 2 {
 		return false
 	}

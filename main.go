@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -17,7 +18,9 @@ func main() {
 		os.Exit(1)
 	}
 
-	cfg, err := config.LoadDefaultConfig(context.TODO(), config.WithSharedConfigProfile(viper.GetString("profile")))
+	ctx := context.Background()
+
+	cfg, err := config.LoadDefaultConfig(ctx, config.WithSharedConfigProfile(viper.GetString("profile")))
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "failed loading AWS config:", err)
 		os.Exit(1)
@@ -32,6 +35,10 @@ func main() {
 		fmt.Printf("getting new files... ")
 		list, err := listFiles(client, viper.GetInt("batch-size"))
 		if err != nil {
+			if errors.Is(err, errNoFilesInBucket) {
+				fmt.Printf("none found\n")
+				break
+			}
 			log.Fatalf("unable to identify the property to manage: %v\n", err)
 		}
 		fmt.Printf("done\n")
@@ -51,7 +58,7 @@ func main() {
 			// Delete file
 			fmt.Printf("(deleting) ")
 			b := viper.GetString("bucket")
-			_, err := client.DeleteObject(context.TODO(), &s3.DeleteObjectInput{
+			_, err := client.DeleteObject(ctx, &s3.DeleteObjectInput{
 				Bucket: &b,
 				Key:    &i,
 			})

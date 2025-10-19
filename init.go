@@ -1,9 +1,11 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -11,6 +13,15 @@ import (
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 )
+
+// Patterns
+var (
+	logFilenamePattern = regexp.MustCompile(`([0-9]{4})-([0-9]{2})-([0-9]{2})T[0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]{3}-.+\.log`)
+	logDatePattern     = regexp.MustCompile(`^\d{4}-\d{2}-\d{2}$`)
+)
+
+// Errors
+var errNoFilesInBucket = errors.New("no files in the bucket")
 
 const (
 	appName       = "gad"

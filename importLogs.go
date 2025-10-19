@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"os"
 	"path"
-	"regexp"
 	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/service/s3"
@@ -15,8 +14,7 @@ import (
 
 func importLogFileContent(s3c *s3.Client, filename string) error {
 	// Open the remote file
-	namePattern := regexp.MustCompile(`([0-9]{4})-([0-9]{2})-([0-9]{2})T[0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]{3}-.+\.log`)
-	lfs := namePattern.FindStringSubmatch(filename)
+	lfs := logFilenamePattern.FindStringSubmatch(filename)
 	if len(lfs) < 4 {
 		return fmt.Errorf("file not matching expected pattern")
 	}
@@ -51,9 +49,6 @@ func importLogFileContent(s3c *s3.Client, filename string) error {
 	sc := bufio.NewScanner(resp.Body)
 	sc.Buffer(make([]byte, 64*1024), 1024*1024)
 
-	// Regexp for dates identification
-	dateCol := regexp.MustCompile(`^\d{4}-\d{2}-\d{2}$`)
-
 	for sc.Scan() {
 		line := sc.Text()
 		fields := strings.Fields(line)
@@ -64,7 +59,7 @@ func importLogFileContent(s3c *s3.Client, filename string) error {
 		if len(first) >= 10 {
 			first = first[:10]
 		}
-		if !dateCol.MatchString(first) {
+		if !logDatePattern.MatchString(first) {
 			fmt.Printf("line not sortable, skipping: %s", line)
 			continue
 		}
