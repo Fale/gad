@@ -15,7 +15,7 @@ import (
 func importLogFileContent(s3c *s3.Client, filename string) error {
 	// Open the remote file
 	lfs := logFilenamePattern.FindStringSubmatch(filename)
-	if len(lfs) < 4 {
+	if len(lfs) < 2 {
 		return fmt.Errorf("file not matching expected pattern")
 	}
 	b := viper.GetString("bucket")

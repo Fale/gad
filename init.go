@@ -16,7 +16,7 @@ import (
 
 // Patterns
 var (
-	logFilenamePattern = regexp.MustCompile(`([0-9]{4})-([0-9]{2})-([0-9]{2})T[0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]{3}-.+\.log`)
+	logFilenamePattern = regexp.MustCompile(`([0-9]{4}-[0-9]{2}-[0-9]{2})T[0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]{3}-.+\.log`)
 	logDatePattern     = regexp.MustCompile(`^\d{4}-\d{2}-\d{2}$`)
 )
 
